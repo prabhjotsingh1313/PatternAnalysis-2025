@@ -54,3 +54,35 @@ def run_one_epoch(model, loader, optimizer=None, device="cuda"):
     
     return total_loss / max(steps, 1)
 
+@torch.no_grad()
+def evaluate_dice(model, loader, device="cuda"):
+    """
+    Evaluate Dice coefficient on a dataset.
+    
+    Args:
+        model: Trained model
+        loader: Data loader
+        device: Device to run on
+    
+    Returns:
+        avg_dice: Average Dice coefficient per channel [C]
+    """
+    model.eval()
+    dice_sum = None
+    n_batches = 0
+    
+    for xb, yb in tqdm(loader, desc="Evaluating"):
+        xb = xb.to(device)
+        yb = yb.to(device)
+        
+        logits = model(xb)
+        dpc = dice_per_channel(logits, yb)  # [C]
+        
+        if dice_sum is None:
+            dice_sum = dpc.clone()
+        else:
+            dice_sum += dpc
+        n_batches += 1
+    
+    return (dice_sum / n_batches).cpu()
+
