@@ -196,3 +196,27 @@ def get_data_loaders(base_path, batch_size=8, num_workers=2, out_size=(256, 256)
     # Discover labels from training set
     label_ids, label_to_ch, num_classes = discover_labels(train_segs)
     print(f"\nDiscovered {num_classes} classes: {label_ids}")
+
+    # Create datasets
+    train_ds = HipMRI2DSegDataset(
+        train_imgs, train_segs, label_to_ch, num_classes, out_size
+    )
+    val_ds = HipMRI2DSegDataset(
+        val_imgs, val_segs, label_to_ch, num_classes, out_size
+    )
+    test_ds = HipMRI2DSegDataset(
+        test_imgs, test_segs, label_to_ch, num_classes, out_size
+    )
+    
+    # Create data loaders
+    train_loader = DataLoader(
+        train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers
+    )
+    val_loader = DataLoader(
+        val_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers
+    )
+    test_loader = DataLoader(
+        test_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers
+    )
+    
+    return train_loader, val_loader, test_loader, num_classes, label_to_ch
