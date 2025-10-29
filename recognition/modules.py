@@ -53,3 +53,19 @@ def conv_block(c_in, c_out, dilation=1):
         nn.BatchNorm2d(c_out),
         nn.ReLU(inplace=True),
     )
+
+class Down(nn.Module):
+    """
+    Downsampling block: max pooling followed by convolutional block.
+    
+    Reduces spatial dimensions by 2x while increasing channel capacity.
+    """
+    
+    def __init__(self, c_in, c_out):
+        super().__init__()
+        self.pool = nn.MaxPool2d(2)
+        self.block = conv_block(c_in, c_out)
+    
+    def forward(self, x):
+        x = self.pool(x)
+        return self.block(x)
