@@ -28,3 +28,28 @@ def center_crop(tensor, target_h, target_w):
     dh = (h - target_h) // 2
     dw = (w - target_w) // 2
     return tensor[:, :, dh:dh + target_h, dw:dw + target_w]
+
+def conv_block(c_in, c_out, dilation=1):
+    """
+    Convolutional block with two 3x3 convolutions, batch norm, and ReLU.
+    
+    The second convolution can use dilation to increase the receptive field
+    without losing resolution, improving context understanding.
+    
+    Args:
+        c_in: Number of input channels
+        c_out: Number of output channels
+        dilation: Dilation rate for the second convolution
+    
+    Returns:
+        Sequential module containing the block
+    """
+    return nn.Sequential(
+        nn.Conv2d(c_in, c_out, kernel_size=3, padding=1, bias=False),
+        nn.BatchNorm2d(c_out),
+        nn.ReLU(inplace=True),
+        nn.Conv2d(c_out, c_out, kernel_size=3,
+                  padding=dilation, dilation=dilation, bias=False),
+        nn.BatchNorm2d(c_out),
+        nn.ReLU(inplace=True),
+    )
