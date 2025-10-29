@@ -70,3 +70,90 @@ def discover_labels(seg_files, max_samples=100):
     num_classes = len(label_ids)
     
     return label_ids, label_to_ch, num_classes
+
+class HipMRI2DSegDataset(Dataset):
+    """
+    PyTorch Dataset for HipMRI 2D segmentation.
+    
+    Loads 2D NIfTI MRI slices and segmentation masks, applies:
+    - Per-slice intensity normalization (z-score)
+    - One-hot encoding of segmentation masks
+    - Resizing to fixed output dimensions
+    
+    Args:
+        img_files: List of image file paths
+        seg_files: List of segmentation file paths
+        label_to_ch_map: Dictionary mapping label IDs to channel indices
+        num_classes: Total number of segmentation classes
+        out_size: Tuple of (height, width) for output images
+        normalize: Whether to apply z-score normalization
+    """
+    
+    def __init__(self, img_files, seg_files, label_to_ch_map, num_classes,
+                 out_size=(256, 256), normalize=True):
+        assert len(img_files) == len(seg_files), "Mismatch in image and segmentation file counts"
+        
+        self.img_files = img_files
+        self.seg_files = seg_files
+        self.label_to_ch = label_to_ch_map
+        self.num_classes = num_classes
+        self.out_size = out_size
+        self.normalize = normalize
+    
+    def __len__(self):
+        return len(self.img_files)
+    
+    def __getitem__(self, idx):
+        img_path = self.img_files[idx]
+        seg_path = self.seg_files[idx]
+        
+        # Load MRI slice
+        img_nii = nib.load(img_path)
+        img_np = img_nii.get_fdata(caching='unchanged')
+        
+        # Handle 3D shape (H, W, 1) -> (H, W)
+        if img_np.ndim == 3:
+            img_np = img_np[:, :, 0]
+        
+        img_np = img_np.astype(np.float32)
+        
+        # Per-slice z-score normalization
+        if self.normalize:
+            mean = img_np.mean()
+            std = img_np.std() + 1e-6
+            img_np = (img_np - mean) / std
+        
+        img_t = torch.from_numpy(img_np).unsqueeze(0)  # [1, H, W]
+        
+        # Load segmentation mask
+        seg_nii = nib.load(seg_path)
+        seg_np = seg_nii.get_fdata(caching='unchanged')
+        
+        if seg_np.ndim == 3:
+            seg_np = seg_np[:, :, 0]
+        
+        seg_np = seg_np.astype(np.uint8)
+        H, W = seg_np.shape
+        
+        # Convert to one-hot encoding with fixed channel order
+        seg_onehot = np.zeros((self.num_classes, H, W), dtype=np.float32)
+        for raw_label, ch_idx in self.label_to_ch.items():
+            seg_onehot[ch_idx] = (seg_np == raw_label).astype(np.float32)
+        
+        seg_t = torch.from_numpy(seg_onehot)  # [C, H, W]
+        
+        # Resize to fixed dimensions for batching
+        img_t = F.interpolate(
+            img_t.unsqueeze(0),
+            size=self.out_size,
+            mode='bilinear',
+            align_corners=False
+        ).squeeze(0)
+        
+        seg_t = F.interpolate(
+            seg_t.unsqueeze(0),
+            size=self.out_size,
+            mode='nearest'
+        ).squeeze(0)
+        
+        return img_t, seg_t
