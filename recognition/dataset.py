@@ -157,3 +157,42 @@ class HipMRI2DSegDataset(Dataset):
         ).squeeze(0)
         
         return img_t, seg_t
+    
+def get_data_loaders(base_path, batch_size=8, num_workers=2, out_size=(256, 256)):
+    """
+    Create train, validation, and test data loaders.
+    
+    Args:
+        base_path: Root directory containing keras_slices_* folders
+        batch_size: Batch size for data loaders
+        num_workers: Number of workers for parallel data loading
+        out_size: Output size for images
+    
+    Returns:
+        train_loader: Training data loader
+        val_loader: Validation data loader
+        test_loader: Test data loader
+        num_classes: Total number of classes
+        label_to_ch: Dictionary mapping label IDs to channels
+    """
+    # Define paths
+    img_train = os.path.join(base_path, "keras_slices_train")
+    seg_train = os.path.join(base_path, "keras_slices_seg_train")
+    img_val = os.path.join(base_path, "keras_slices_validate")
+    seg_val = os.path.join(base_path, "keras_slices_seg_validate")
+    img_test = os.path.join(base_path, "keras_slices_test")
+    seg_test = os.path.join(base_path, "keras_slices_seg_test")
+    
+    # Build file pairs
+    train_imgs, train_segs = build_pairs(img_train, seg_train)
+    val_imgs, val_segs = build_pairs(img_val, seg_val)
+    test_imgs, test_segs = build_pairs(img_test, seg_test)
+    
+    print(f"Dataset splits:")
+    print(f"  Train: {len(train_imgs)} samples")
+    print(f"  Val:   {len(val_imgs)} samples")
+    print(f"  Test:  {len(test_imgs)} samples")
+    
+    # Discover labels from training set
+    label_ids, label_to_ch, num_classes = discover_labels(train_segs)
+    print(f"\nDiscovered {num_classes} classes: {label_ids}")
