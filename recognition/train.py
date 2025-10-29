@@ -86,3 +86,30 @@ def evaluate_dice(model, loader, device="cuda"):
     
     return (dice_sum / n_batches).cpu()
 
+def plot_training_curves(train_losses, val_losses, save_path="training_curves.png"):
+    """
+    Plot and save training and validation loss curves.
+    
+    Args:
+        train_losses: List of training losses per epoch
+        val_losses: List of validation losses per epoch
+        save_path: Path to save the figure
+    """
+    plt.figure(figsize=(10, 6))
+    epochs = range(1, len(train_losses) + 1)
+    
+    plt.plot(epochs, train_losses, 'b-o', label='Training Loss', linewidth=2)
+    plt.plot(epochs, val_losses, 'r-s', label='Validation Loss', linewidth=2)
+    
+    plt.xlabel('Epoch', fontsize=12)
+    plt.ylabel('Dice Loss', fontsize=12)
+    plt.title('Training and Validation Loss Over Time', fontsize=14)
+    plt.legend(fontsize=11)
+    plt.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    print(f"Training curves saved to {save_path}")
+    plt.close()
+
+    
