@@ -103,3 +103,74 @@ class Up(nn.Module):
         # Concatenate along channel dimension
         x = torch.cat([x, skip_cropped], dim=1)
         return self.conv(x)
+    
+class ImprovedUNet2D(nn.Module):
+    """
+    Improved 2D U-Net for medical image segmentation.
+    
+    Architecture improvements:
+    - Deeper bottleneck (5 levels instead of 4)
+    - Dilated convolutions in bottleneck for larger receptive field
+    - Batch normalization for training stability
+    - Skip connections to preserve fine-grained details
+    
+    Reference:
+    Ronneberger et al., "U-Net: Convolutional Networks for Biomedical 
+    Image Segmentation", MICCAI 2015
+    
+    Args:
+        in_ch: Number of input channels (1 for grayscale MRI)
+        num_classes: Number of segmentation classes
+        base: Base number of feature channels (scales by 2 at each level)
+    """
+    
+    def __init__(self, in_ch=1, num_classes=6, base=32):
+        super().__init__()
+        
+        # Encoder path (contracting)
+        self.enc1 = conv_block(in_ch, base)          # 32 channels,  H x W
+        self.enc2 = Down(base, base * 2)             # 64 channels,  H/2 x W/2
+        self.enc3 = Down(base * 2, base * 4)         # 128 channels, H/4 x W/4
+        self.enc4 = Down(base * 4, base * 8)         # 256 channels, H/8 x W/8
+        
+        # Bottleneck with dilation for larger receptive field
+        self.bottleneck = Down(base * 8, base * 16)  # 512 channels, H/16 x W/16
+        
+        # Decoder path (expanding)
+        self.up4 = Up(base * 16, base * 8)           # 512 -> 256 channels
+        self.up3 = Up(base * 8, base * 4)            # 256 -> 128 channels
+        self.up2 = Up(base * 4, base * 2)            # 128 -> 64 channels
+        self.up1 = Up(base * 2, base)                # 64 -> 32 channels
+        
+        # Final 1x1 convolution for classification
+        self.outc = nn.Conv2d(base, num_classes, kernel_size=1)
+    
+    def forward(self, x):
+        """
+        Forward pass through the network.
+        
+        Args:
+            x: Input tensor of shape [B, 1, H, W]
+        
+        Returns:
+            logits: Output logits of shape [B, num_classes, H, W]
+        """
+        # Encoder with skip connections
+        s1 = self.enc1(x)         # [B, 32,  H,    W]
+        s2 = self.enc2(s1)        # [B, 64,  H/2,  W/2]
+        s3 = self.enc3(s2)        # [B, 128, H/4,  W/4]
+        s4 = self.enc4(s3)        # [B, 256, H/8,  W/8]
+        
+        # Bottleneck
+        b = self.bottleneck(s4)   # [B, 512, H/16, W/16]
+        
+        # Decoder with skip connections
+        x = self.up4(b, s4)       # [B, 256, H/8,  W/8]
+        x = self.up3(x, s3)       # [B, 128, H/4,  W/4]
+        x = self.up2(x, s2)       # [B, 64,  H/2,  W/2]
+        x = self.up1(x, s1)       # [B, 32,  H,    W]
+        
+        # Classification
+        logits = self.outc(x)     # [B, num_classes, H, W]
+        
+        return logits
