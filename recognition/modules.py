@@ -69,3 +69,37 @@ class Down(nn.Module):
     def forward(self, x):
         x = self.pool(x)
         return self.block(x)
+    
+class Up(nn.Module):
+    """
+    Upsampling block: transposed convolution, concatenation with skip connection,
+    followed by convolutional block.
+    
+    Increases spatial dimensions by 2x while reducing channel capacity.
+    """
+    
+    def __init__(self, c_in, c_out):
+        super().__init__()
+        # Upsample: c_in -> c_in // 2
+        self.up = nn.ConvTranspose2d(c_in, c_in // 2, kernel_size=2, stride=2)
+        # After concat with skip (also c_in // 2 channels), total is c_in
+        self.conv = conv_block(c_in, c_out)
+    
+    def forward(self, x, skip):
+        """
+        Args:
+            x: Input from previous decoder layer
+            skip: Skip connection from encoder
+        
+        Returns:
+            Upsampled and processed features
+        """
+        x = self.up(x)
+        
+        # Crop skip connection to match upsampled size
+        _, _, h, w = x.shape
+        skip_cropped = center_crop(skip, h, w)
+        
+        # Concatenate along channel dimension
+        x = torch.cat([x, skip_cropped], dim=1)
+        return self.conv(x)
