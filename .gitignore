@@ -1,0 +1,18 @@
+# Ignore datasets, models, outputs, notebooks
+*.nii
+*.nii.gz
+*.zip
+*.pth
+*.pt
+*.ckpt
+*.npy
+*.png
+*.jpg
+*.jpeg
+*.json
+*.csv
+checkpoints/
+predictions/
+__pycache__/
+.ipynb_checkpoints/
+*.ipynb
