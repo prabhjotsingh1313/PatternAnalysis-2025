@@ -246,4 +246,53 @@ def predict_and_report(
     print("\n[predict] Done. Visualizations saved in:", out_dir)
 
 
+def main():
+    parser = argparse.ArgumentParser(
+        description="Inference and visualization with trained Improved U-Net"
+    )
+    parser.add_argument(
+        "--data_path",
+        type=str,
+        required=True,
+        help="Path to HipMRI_2D dataset root (the folder containing keras_slices_*)"
+    )
+    parser.add_argument(
+        "--checkpoint",
+        type=str,
+        required=True,
+        help="Path to best_model.pth saved during training"
+    )
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="cuda",
+        help="Device to use (cuda or cpu)"
+    )
+    parser.add_argument(
+        "--num_samples",
+        type=int,
+        default=4,
+        help="How many test images to visualize"
+    )
+    parser.add_argument(
+        "--out_dir",
+        type=str,
+        default="./predictions",
+        help="Where to save visualizations"
+    )
+
+    args = parser.parse_args()
+
+    predict_and_report(
+        data_path=args.data_path,
+        checkpoint_path=args.checkpoint,
+        device=args.device,
+        num_samples=args.num_samples,
+        out_dir=args.out_dir
+    )
+
+
+if __name__ == "__main__":
+    main()
+
 
