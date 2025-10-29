@@ -174,3 +174,50 @@ class ImprovedUNet2D(nn.Module):
         logits = self.outc(x)     # [B, num_classes, H, W]
         
         return logits
+    
+def dice_per_channel(pred_logits, target_onehot, eps=1e-6):
+    """
+    Calculate Dice coefficient per channel.
+    
+    Args:
+        pred_logits: Predicted logits [B, C, H, W]
+        target_onehot: Ground truth one-hot [B, C, H, W]
+        eps: Small epsilon for numerical stability
+    
+    Returns:
+        dice: Dice coefficient for each channel [C]
+    """
+    pred_probs = torch.sigmoid(pred_logits)
+    pred_bin = (pred_probs > 0.5).float()
+    
+    dims = (0, 2, 3)  # Sum over batch, height, width
+    inter = (pred_bin * target_onehot).sum(dim=dims)
+    union = pred_bin.sum(dim=dims) + target_onehot.sum(dim=dims)
+    dice = (2.0 * inter + eps) / (union + eps)
+    
+    return dice
+
+
+def dice_loss(pred_logits, target_onehot, eps=1e-6):
+    """
+    Soft Dice loss for training.
+    
+    Uses soft predictions (probabilities) instead of hard thresholding
+    to allow gradient flow during training.
+    
+    Args:
+        pred_logits: Predicted logits [B, C, H, W]
+        target_onehot: Ground truth one-hot [B, C, H, W]
+        eps: Small epsilon for numerical stability
+    
+    Returns:
+        loss: Scalar Dice loss (1 - mean Dice)
+    """
+    pred_probs = torch.sigmoid(pred_logits)
+    
+    dims = (0, 2, 3)  # Sum over batch, height, width
+    inter = (pred_probs * target_onehot).sum(dim=dims)
+    union = pred_probs.sum(dim=dims) + target_onehot.sum(dim=dims)
+    dice = (2.0 * inter + eps) / (union + eps)
+    
+    return 1.0 - dice.mean()
