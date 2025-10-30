@@ -207,7 +207,6 @@ The training curves show:
     └── test_results.json
 ```
 
-**Note**: The `checkpoints/` directory is created automatically when running `train.py` and should not be committed to the repository.
 
 ## Implementation Details
 
