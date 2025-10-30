@@ -212,8 +212,10 @@ Visual results demonstrate:
 ├── predict.py          # Inference and visualization script
 ├── README.md           # Project documentation
 ├── requirements.txt    # Python dependencies
-├── images/             # Visualization results
-│   └── training_curves.png
+├── images/             # Visualization results for documentation
+│   ├── training_curves.png
+│   ├── predictions.png
+│   └── overlays.png
 └── checkpoints/        # Saved models and results (created during training)
     ├── best_model.pth
     ├── training_curves.png
