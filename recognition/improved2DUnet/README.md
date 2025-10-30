@@ -85,6 +85,8 @@ HipMRI_2D/
 
 ## Usage
 
+**Note**: This project was developed using Google Colab with GPU A100 runtime, but is compatible with any environment with CUDA-capable GPU or CPU.
+
 ### Training
 
 Train the model from scratch:
