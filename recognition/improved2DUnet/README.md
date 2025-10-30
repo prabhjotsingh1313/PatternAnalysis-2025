@@ -1,4 +1,4 @@
-﻿# Improved 2D U-Net for Prostate Cancer Segmentation on HipMRI Dataset
+﻿# Improved 2D U-Net for Prostate Cancer Segmentation on HipMRI Dataset (PROJECT 3)
 
 ## Overview
 
