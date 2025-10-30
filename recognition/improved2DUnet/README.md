@@ -180,6 +180,7 @@ Epoch-wise training and validation loss:
 ### Training Curves
 
 ![Training Curves](images/training_curves.png)
+![alt text](training_curves.png)
 
 The training curves show:
 - Rapid convergence in the first few epochs
