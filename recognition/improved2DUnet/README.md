@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements an **Improved 2D U-Net** architecture for multi-class segmentation of MRI images from the HipMRI Study on Prostate Cancer. The model successfully achieves a Dice similarity coefficient of **0.9342** on the prostate label in the test set, significantly exceeding the project requirement of 0.75.
+This project implements an **Improved 2D U-Net** architecture for multi-class segmentation of MRI images from the HipMRI Study on Prostate Cancer. The model successfully achieves a Dice similarity coefficient of **0.9373** on the prostate label in the test set, significantly exceeding the project requirement of 0.75.
 
 ## Problem Description
 
@@ -157,23 +157,21 @@ This split ensures:
 
 | Channel | Class | Dice Coefficient |
 |---------|-------|------------------|
-| 0 | Background | 0.9954 |
+| 0 | Background | 0.9952 |
 | 1 | Class 1 | 0.9768 |
-| 2 | Class 2 | 0.8920 |
-| 3 | **Prostate** | **0.9342** |
-| 4 | Class 4 | 0.8721 |
-| 5 | Class 5 | 0.8463 |
+| 2 | Class 2 | 0.9023 |
+| 3 | **Prostate** | **0.9373** |
+| 4 | Class 4 | 0.8717 |
+| 5 | Class 5 | 0.8113 |
 
-**Mean Dice Coefficient**: 0.9195
+**Mean Dice Coefficient**: 0.9158
 
 ### Training Progress
 
-Epoch-wise training and validation loss:
-
 | Epoch | Training Loss | Validation Loss |
 |-------|---------------|-----------------|
-| 1 | 0.2469 | 0.2896 |
-| 2 | 0.1040 | 0.2643 |
+| 1 | 0.2472 | 0.3062 |
+| 2 | 0.1457 | 0.3035 |
 
 *Note: Results shown for 2 epochs. Full training (20 epochs) recommended for optimal performance.*
 
@@ -186,9 +184,24 @@ The training curves show:
 - Consistent improvement in validation loss
 - No significant overfitting (train and validation losses track closely)
 
+### Prediction Examples
+
+![Predictions](images/predictions.png)
+
+*Figure 2: Side-by-side comparison of MRI input, ground truth segmentation, and model predictions on test samples*
+
+![Overlays](images/overlays.png)
+
+*Figure 3: Segmentation overlays blended with original MRI images for visual interpretation*
+
+Visual results demonstrate:
+- Accurate boundary delineation for the prostate
+- Robust segmentation across different anatomical variations
+- Clear distinction between adjacent structures
+
 ## Project Requirements
 
-**Requirement Met**: Prostate Dice coefficient = **0.9342** (exceeds 0.75 threshold by 24.5%)
+**Requirement Met**: Prostate Dice coefficient = **0.9373** (exceeds 0.75 threshold by 24.9%)
 
 ## File Structure
 ```
